@@ -31,7 +31,7 @@ main() {
   if [[ -e "$(pwd)/.env.bws" ]]; then
     while IFS= read -r line ; do
       if ! [[ $line =~ ^# ]]; then
-        name="${line%%=*}" 
+        name="${line%%=*}"
         uuid="${line##*=}"
 
         local secret
