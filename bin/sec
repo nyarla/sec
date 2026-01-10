@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+main() {
+  if ! command -v secret-tool 1>/dev/null ; then
+    echo "this command requires to \`secret-tool\` command." >&2
+    exit 1
+  fi
+
+  if ! command -v bws 1>/dev/null; then
+    echo "this command requires to \`bws\` command." >&2
+    exit 1
+  fi
+
+  if ! command -v jq 1>/dev/null ; then
+    echo "this command requires to \`jq\` command" >&2
+    exit 1
+  fi
+
+  export SEC_ENV=${SEC_ENV:-development}
+  export BWS_ACCESS_TOKEN
+
+  BWS_ACCESS_TOKEN="$(secret-tool lookup bws_access_token "${SEC_ENV}")"
+
+  if [[ -z "${BWS_ACCESS_TOKEN:-}" ]]; then
+    echo "cannot read BWS_ACCESS_TOKEN by secret-tool." >&2
+    echo "please set access token by \`secret-tool store --label='Bitwarden Secret Manager (${SEC_ENV})' bws_access_token ${SEC_ENV}\`"
+  fi
+
+  if [[ -e "$(pwd)/.env.bws" ]]; then
+    while IFS= read -r line ; do
+      if ! [[ $line =~ ^# ]]; then
+        name="${line%%=*}" 
+        uuid="${line##*=}"
+
+        local secret
+        secret="$(bws secret get "${uuid}" | jq -r '.value')"
+
+        eval "export ${name}='${secret}'"
+      fi
+    done < "$(pwd)/.env.bws"
+  fi
+
+  exec "${@:-}"
+}
+
+main "${@:-}"
