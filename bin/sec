@@ -21,7 +21,7 @@ main() {
   export SEC_ENV=${SEC_ENV:-development}
   export BWS_ACCESS_TOKEN
 
-  BWS_ACCESS_TOKEN="$(secret-tool lookup bws_access_token "${SEC_ENV}")"
+  BWS_ACCESS_TOKEN="$(secret-tool lookup bws_access_token "${SEC_ENV}" || true)"
 
   if [[ -z "${BWS_ACCESS_TOKEN:-}" ]]; then
     echo "cannot read BWS_ACCESS_TOKEN by secret-tool." >&2
